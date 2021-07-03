@@ -8,6 +8,6 @@ class Command:
     __tablename__ = "commands"
     __sa_dataclass_metadata_key__ = "sa"
 
-    id: int = field(init=False, metadata={"sa": Column(Integer, primary_key=True)})
-    name: str = field(metadata={"sa": Column(String(50))})
+    guild_id: int = field(metadata={"sa": Column(Integer, primary_key=True)})
+    name: str = field(metadata={"sa": Column(String(50), primary_key=True)})
     contents: str = field(metadata={"sa": Column(Text)})

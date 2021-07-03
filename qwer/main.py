@@ -43,9 +43,10 @@ async def try_handling_manage_command(message: discord.Message) -> bool:
     
     if action == 'add':
         command_name = parameters[0]
-        command_contents = " ".join(parameters[1:])
+        command_contents = ' '.join(parameters[1:])
         
         new_command = Command(
+            guild_id=message.guild.id,
             name=command_name,
             contents=command_contents
         )
@@ -66,7 +67,10 @@ def find_command(message: discord.Message) -> Optional[Command]:
     
     command_name = command_name_with_prefix.strip('!')
 
-    return command_repository.find_command_by_name(command_name)
+    return command_repository.find_command_by_guild_id_and_name(
+        message.guild.id,
+        command_name
+    )
 
 @client.event
 async def on_message(message: discord.Message):

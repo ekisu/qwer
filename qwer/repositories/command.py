@@ -9,8 +9,11 @@ class CommandRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def find_command_by_name(self, name: str) -> Optional[Command]:
-        statement = select(Command).filter_by(name=name)
+    def find_command_by_guild_id_and_name(self, guild_id: int, name: str) -> Optional[Command]:
+        statement = select(Command).filter_by(
+            guild_id=guild_id,
+            name=name
+        )
 
         results = self.session.execute(statement).one_or_none()
         if results is None:
