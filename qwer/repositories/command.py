@@ -22,6 +22,5 @@ class CommandRepository:
         return results[0]
     
     def create_command(self, command: Command):
-        with self.session.begin():
-           self.session.add(command)
-           self.session.commit()
+        self.session.add(command)
+        self.session.flush()

@@ -9,6 +9,8 @@ from sqlalchemy.orm.session import sessionmaker
 from qwer.database.engine import engine
 from qwer.domain.entities.command import Command
 from qwer.repositories.command import CommandRepository
+from qwer.services.domain.command_executor import CommandExecutor
+from qwer.services.domain.command_parser import CommandParser
 
 def load_credentials():
     with open('credentials.yaml') as f:
@@ -57,20 +59,25 @@ async def try_handling_manage_command(message: discord.Message) -> bool:
 
     return True
 
-def find_command(message: discord.Message) -> Optional[Command]:
+async def try_find_command(message: discord.Message) -> None:
+    command_parser = CommandParser()
     message_contents: str = message.content
-    command_name_with_prefix = message_contents.split()[0]
 
-    if not command_name_with_prefix.startswith('!'):
-        # Not an actual command
-        return None
-    
-    command_name = command_name_with_prefix.strip('!')
+    invocation = command_parser.parse(message_contents)
+    if invocation is None:
+        return
 
-    return command_repository.find_command_by_guild_id_and_name(
+    command = command_repository.find_command_by_guild_id_and_name(
         message.guild.id,
-        command_name
+        invocation.command_name
     )
+    if command is None:
+        return
+    
+    command_executor = CommandExecutor()
+    response = command_executor.execute(command, invocation)
+
+    await message.channel.send(response)
 
 @client.event
 async def on_message(message: discord.Message):
@@ -81,8 +88,6 @@ async def on_message(message: discord.Message):
     if handled:
         return
 
-    command = find_command(message)
-    if command is not None:
-        await message.channel.send(command.contents)
+    await try_find_command(message)
 
 client.run(credentials['token'])
