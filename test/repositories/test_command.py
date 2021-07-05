@@ -20,9 +20,8 @@ class TestCommandRepository(unittest.TestCase):
         self.command_repository = CommandRepository(self.session)
 
     def test_create_command_should_add_record_to_database(self):
-        with self.session.begin():
-            registry_count = self.session.query(Command).count()
-            self.assertEqual(registry_count, 0)
+        registry_count = self.session.query(Command).count()
+        self.assertEqual(registry_count, 0)
 
         command = Command(
             guild_id=123,
@@ -32,9 +31,8 @@ class TestCommandRepository(unittest.TestCase):
         
         self.command_repository.create_command(command)
 
-        with self.session.begin():
-            registry_count = self.session.query(Command).count()
-            self.assertEqual(registry_count, 1)
+        registry_count = self.session.query(Command).count()
+        self.assertEqual(registry_count, 1)
 
     def test_find_command_by_guild_id_and_name_should_be_None_when_no_commands_are_found(self):
         result = self.command_repository.find_command_by_guild_id_and_name(

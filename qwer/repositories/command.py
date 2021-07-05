@@ -23,4 +23,4 @@ class CommandRepository:
     
     def create_command(self, command: Command):
         self.session.add(command)
-        self.session.flush()
+        self.session.commit()

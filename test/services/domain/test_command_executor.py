@@ -1,3 +1,5 @@
+from qwer.services.domain.command_functions import AbstractCommandFunctions
+from unittest.mock import Mock, create_autospec
 from qwer.services.domain.command_executor import CommandExecutor
 from qwer.domain.value_objects.command_invocation import CommandInvocation
 from qwer.domain.entities.command import Command
@@ -34,3 +36,45 @@ class TestCommandExecutor(unittest.TestCase):
         result = self.command_executor.execute(command_with_template, invocation)
 
         self.assertEqual(result, expected_result)
+    
+    def test_execute_should_use_functions_when_contents_call_functions(self):
+        url = 'https://test.io/api'
+        command_using_functions = self.build_command('Elo: {{urlfetch("' + url + '")}}!')
+        invocation = CommandInvocation('test_command', ['Yuko'])
+
+        mock_command_functions = create_autospec(AbstractCommandFunctions)
+        mock_urlfetch = Mock(return_value='Diamond IV')
+        mock_command_functions.get_methods.return_value = {
+            'urlfetch': mock_urlfetch
+        }
+
+        command_executor = CommandExecutor(
+            command_functions=mock_command_functions
+        )
+
+        expected_result = 'Elo: Diamond IV!'
+        result = command_executor.execute(command_using_functions, invocation)
+
+        self.assertEqual(result, expected_result)
+        mock_urlfetch.assert_called_with(url)
+    
+    def test_execute_should_work_when_functions_and_parameters(self):
+        base_url = 'https://test.io/api/'
+        command_using_functions = self.build_command('Elo: {{urlfetch("' + base_url + '" + invocation.command_arguments[0])}}!')
+        invocation = CommandInvocation('test_command', ['Yuko'])
+
+        mock_command_functions = create_autospec(AbstractCommandFunctions)
+        mock_urlfetch = Mock(return_value='Diamond IV')
+        mock_command_functions.get_methods.return_value = {
+            'urlfetch': mock_urlfetch
+        }
+
+        command_executor = CommandExecutor(
+            command_functions=mock_command_functions
+        )
+
+        expected_result = 'Elo: Diamond IV!'
+        result = command_executor.execute(command_using_functions, invocation)
+
+        self.assertEqual(result, expected_result)
+        mock_urlfetch.assert_called_with('https://test.io/api/Yuko')
