@@ -5,7 +5,7 @@ from qwer.domain.value_objects.command_invocation import CommandInvocation
 from qwer.domain.entities.command import Command
 import unittest
 
-class TestCommandExecutor(unittest.TestCase):
+class TestCommandExecutor(unittest.IsolatedAsyncioTestCase):
     command_executor: CommandExecutor
 
     def setUp(self) -> None:
@@ -18,26 +18,26 @@ class TestCommandExecutor(unittest.TestCase):
             contents=contents
         )
 
-    def test_execute_should_return_contents_when_command_has_no_calls(self):
+    async def test_execute_should_return_contents_when_command_has_no_calls(self):
         simple_command = self.build_command('Hello, World!')
 
         invocation = CommandInvocation('test_command', [])
 
-        result = self.command_executor.execute(simple_command, invocation)
+        result = await self.command_executor.execute(simple_command, invocation)
 
         self.assertEqual(result, simple_command.contents)
     
-    def test_execute_should_replace_arguments_when_contents_use_arguments(self):
+    async def test_execute_should_replace_arguments_when_contents_use_arguments(self):
         command_with_template = self.build_command('Hello, {{invocation.command_arguments[0]}}!')
 
         invocation = CommandInvocation('test_command', ['Yuko'])
 
         expected_result = 'Hello, Yuko!'
-        result = self.command_executor.execute(command_with_template, invocation)
+        result = await self.command_executor.execute(command_with_template, invocation)
 
         self.assertEqual(result, expected_result)
     
-    def test_execute_should_use_functions_when_contents_call_functions(self):
+    async def test_execute_should_use_functions_when_contents_call_functions(self):
         url = 'https://test.io/api'
         command_using_functions = self.build_command('Elo: {{urlfetch("' + url + '")}}!')
         invocation = CommandInvocation('test_command', ['Yuko'])
@@ -53,12 +53,12 @@ class TestCommandExecutor(unittest.TestCase):
         )
 
         expected_result = 'Elo: Diamond IV!'
-        result = command_executor.execute(command_using_functions, invocation)
+        result = await command_executor.execute(command_using_functions, invocation)
 
         self.assertEqual(result, expected_result)
         mock_urlfetch.assert_called_with(url)
     
-    def test_execute_should_work_when_functions_and_parameters(self):
+    async def test_execute_should_work_when_functions_and_parameters(self):
         base_url = 'https://test.io/api/'
         command_using_functions = self.build_command('Elo: {{urlfetch("' + base_url + '" + invocation.command_arguments[0])}}!')
         invocation = CommandInvocation('test_command', ['Yuko'])
@@ -74,7 +74,7 @@ class TestCommandExecutor(unittest.TestCase):
         )
 
         expected_result = 'Elo: Diamond IV!'
-        result = command_executor.execute(command_using_functions, invocation)
+        result = await command_executor.execute(command_using_functions, invocation)
 
         self.assertEqual(result, expected_result)
         mock_urlfetch.assert_called_with('https://test.io/api/Yuko')
