@@ -14,10 +14,10 @@ class CommandExecutor:
     ):
         self.command_functions = command_functions
 
-    def execute(self, command: Command, invocation: CommandInvocation):
-        template = Template(command.contents)
+    async def execute(self, command: Command, invocation: CommandInvocation):
+        template = Template(command.contents, enable_async=True)
         
-        return template.render(
+        return await template.render_async(
             invocation=invocation,
             **self.command_functions.get_methods()
         )
