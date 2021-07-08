@@ -1,7 +1,6 @@
 from typing import Optional
 
 import discord
-from sqlalchemy.sql.expression import false
 import yaml
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
@@ -37,7 +36,7 @@ async def try_handling_manage_command(message: discord.Message) -> bool:
         return True
     
     action, *parameters = manage_arguments[1:]
-    valid_actions = ['add']
+    valid_actions = ['add', 'list', 'delete', 'update']
     if action not in valid_actions:
         await message.channel.send(f'Invalid !manage action, valid actions are {",".join(valid_actions)}')
         
@@ -56,6 +55,51 @@ async def try_handling_manage_command(message: discord.Message) -> bool:
         command_repository.create_command(new_command)
 
         await message.channel.send(f'Command {command_name} created succesfully!')
+    elif action == 'list':
+        commands = command_repository.list_commands_by_guild_id(
+            guild_id=message.guild.id
+        )
+
+        response = ', '.join(
+            f'**!{command.name}**' for command in commands
+        )
+
+        await message.channel.send(response)
+    elif action == 'delete':
+        command_name = parameters[0]
+
+        command = command_repository.find_command_by_guild_id_and_name(
+            guild_id=message.guild.id,
+            name=command_name
+        )
+
+        if command is None:
+            await message.channel.send(f'Command {command_name} does not exist!')
+
+            return True
+
+
+        command_repository.delete_command(command)
+
+        await message.channel.send(f'Command {command_name} deleted successfully!')
+    elif action == 'update':
+        command_name = parameters[0]
+        command_contents = ' '.join(parameters[1:])
+        
+        found_command = command_repository.find_command_by_guild_id_and_name(
+            guild_id=message.guild.id,
+            name=command_name
+        )
+
+        if found_command is None:
+            await message.channel.send(f'Command {command_name} does not exist!')
+
+            return True
+        
+        found_command.contents = command_contents
+        command_repository.update_command(found_command)
+
+        await message.channel.send(f'Command {command_name} updated succesfully!')
 
     return True
 
@@ -75,7 +119,7 @@ async def try_find_command(message: discord.Message) -> None:
         return
     
     command_executor = CommandExecutor()
-    response = command_executor.execute(command, invocation)
+    response = await command_executor.execute(command, invocation)
 
     await message.channel.send(response)
 
