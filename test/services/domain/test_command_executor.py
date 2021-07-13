@@ -5,6 +5,7 @@ from qwer.domain.value_objects.command_invocation import CommandInvocation
 from qwer.domain.entities.command import Command
 import unittest
 
+
 class TestCommandExecutor(unittest.IsolatedAsyncioTestCase):
     command_executor: CommandExecutor
 
@@ -26,7 +27,7 @@ class TestCommandExecutor(unittest.IsolatedAsyncioTestCase):
         result = await self.command_executor.execute(simple_command, invocation)
 
         self.assertEqual(result, simple_command.contents)
-    
+
     async def test_execute_should_replace_arguments_when_contents_use_arguments(self):
         command_with_template = self.build_command('Hello, {{invocation.command_arguments[0]}}!')
 
@@ -36,7 +37,7 @@ class TestCommandExecutor(unittest.IsolatedAsyncioTestCase):
         result = await self.command_executor.execute(command_with_template, invocation)
 
         self.assertEqual(result, expected_result)
-    
+
     async def test_execute_should_use_functions_when_contents_call_functions(self):
         url = 'https://test.io/api'
         command_using_functions = self.build_command('Elo: {{urlfetch("' + url + '")}}!')
@@ -57,10 +58,12 @@ class TestCommandExecutor(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result, expected_result)
         mock_urlfetch.assert_called_with(url)
-    
+
     async def test_execute_should_work_when_functions_and_parameters(self):
         base_url = 'https://test.io/api/'
-        command_using_functions = self.build_command('Elo: {{urlfetch("' + base_url + '" + invocation.command_arguments[0])}}!')
+        command_using_functions = self.build_command(
+            'Elo: {{urlfetch("' + base_url + '" + invocation.command_arguments[0])}}!'
+        )
         invocation = CommandInvocation('test_command', ['Yuko'])
 
         mock_command_functions = create_autospec(AbstractCommandFunctions)
