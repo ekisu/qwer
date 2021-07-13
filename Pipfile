@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"discord.py" = "==1.7.3"
+requests = "==2.25.1"
+Jinja2 = "==3.0.1"
+PyYAML = "==5.4.1"
+SQLAlchemy = "==1.4.20"
+
+[dev-packages]
+flake8 = "*"
+
+[requires]
+python_version = "3.7"
+
+[scripts]
+lint = "flake8"
+test = "python -m unittest"
