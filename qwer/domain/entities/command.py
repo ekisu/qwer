@@ -2,6 +2,7 @@ from .registry import mapper_registry
 from dataclasses import dataclass, field
 from sqlalchemy import Column, Integer, String, Text
 
+
 @mapper_registry.mapped
 @dataclass
 class Command:
