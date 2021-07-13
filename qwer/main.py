@@ -19,10 +19,10 @@ credentials = load_credentials()
 client = discord.Client()
 Session = sessionmaker(engine, future=True)
 
-command_repository = CommandRepository(Session())
-
 
 async def try_handling_manage_command(message: discord.Message) -> bool:
+    command_repository = CommandRepository(Session())
+
     message_contents: str = message.content
     is_manage_command = message_contents.startswith('!manage')
 
@@ -110,6 +110,7 @@ async def try_handling_manage_command(message: discord.Message) -> bool:
 
 
 async def try_find_command(message: discord.Message) -> None:
+    command_repository = CommandRepository(Session())
     command_parser = CommandParser()
     message_contents: str = message.content
 
